@@ -1,0 +1,12 @@
+<div>
+   <button ng-click="addCustomer()">Change Data</button>
+   <ul>
+     <li ng-repeat="cust in customers">{{ cust.name }}</li>
+   </ul>
+  <input type="text"   ng-model="patientuuid">
+  <button type="submit" ng-click="searchPatient">Find Patient</button>
+  <ul>
+    <li ng-repeat="patient in patients.results">{{ patient.person.display }}</li>
+  </ul>
+
+</div>

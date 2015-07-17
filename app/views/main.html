@@ -1,0 +1,24 @@
+<div ng-controller="MainController as vm">
+  <div class="containerm col-md-4 col-md-offset-4">
+
+    <form name="loginForm" ng-controller="LoginController"
+          ng-submit="login(credentials)" novalidate>
+
+      <label for="username">Username:</label>
+      <input type="text" id="username"
+             ng-model="credentials.username">
+      </p>
+      <label for="password">Password:</label>
+      <input type="password" id="password"
+             ng-model="credentials.password">
+      </p>
+      <button type="submit" ng-click="login">Login</button>
+
+    </form>
+
+    <form name="vm.someForm" ng-submit="vm.submit()">
+      <formly-form model="vm.model" fields="vm.fields" options="vm.options">
+        <button type="submit" ng-click="vm.onSubmit">Submit u</button>
+        <button type="button" ng-click="vm.options.resetModel()">Reset</button>
+      </formly-form>
+    </form>

@@ -1,0 +1,21 @@
+/**
+ * Created by admin1 on 6/19/15.
+ */
+
+(function() {
+
+    'use strict';
+
+    angular
+        .module('formlyApp')
+        .controller('MainController', MainController);
+
+    function MainController() {
+
+        var vm = this;
+
+    }
+
+})();
+
+
