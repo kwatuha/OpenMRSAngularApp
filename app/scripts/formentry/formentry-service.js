@@ -3,18 +3,42 @@ var search = angular.module('formEntry');
 search.factory('FormEntryService',['$http','$resource','AuthService','AUTH_EVENTS', function ($http,$resource,AuthService,AUTH_EVENTS) {
   var formEntryService = {};
 
-  formEntryService.getFormFields=function(formId){
-    var formlyFields=[];
-    var formsFields=getFormFieldList();
-    for(var key in formsFields) formlyFields.push(createFormlyField(formsFields[key]));
-    return formlyFields;
+  formEntryService.getFormFields = function(formId) {
+    var formlyFields = [];
+    var formsFields = getFormFieldList();
+for (var key in formsFields) {
+     var ff=createFormlyFields(formsFields[key]);
+      for (var i in ff) {
+        formlyFields.push(ff[i]);
+        }
+      }
 
+    return formlyFields;
+  };
+
+function createFormlyFields(fieldDef){
+    var fields = [];
+    var groupItems=[];
+    if (fieldDef.groupId === undefined) {
+      fields.push(createFormlyField(fieldDef));
+    }
+    else {
+      groupItems = fieldDef.groupMembers;
+      for (var i = 0; i < groupItems.length; i++) {
+        fields.push (createFormlyField (groupItems[i]));
+      }
+    }
+
+    return fields;
   }
 
   //Create submit payload
-  formEntryService.createSubmitPayload=function(formModel){
-    var encounterObs=[];
+  formEntryService.createSubmitPayload = function(formModel, formFields) {
+    var encounterObs = [];
 
+/*for(var key2 in formFields){
+
+}*/
     for(var key in formModel){
       if(formModel[key].constructor === Array){
         for(var response in formModel[key]){
@@ -27,8 +51,7 @@ search.factory('FormEntryService',['$http','$resource','AuthService','AUTH_EVENT
         }
 
       }else{
-        alert(JSON.stringify(formModel)+'The key'+key+'----YYYYYYYYYYYYYYY=='+getConceptUUidById(key)+'OOOOO'+formModel[key])
-        var obs= {
+          var obs= {
           obsDatetime:"2015-07-15",
           concept:getConceptUUidById(key),
           value:formModel[key]
@@ -37,6 +60,22 @@ search.factory('FormEntryService',['$http','$resource','AuthService','AUTH_EVENT
       }
     }
     //Add obs to the encounter
+
+
+    var obsV= [{
+      obsDatetime:"2015-07-15",
+      concept:"0f8b7f4e-1656-46b7-bc93-d1fe4f193f5d",
+      groupMembers:[{
+        obsDatetime:"2015-07-15",
+        concept:"a8a06fc6-1350-11df-a1f1-0026b9348838",
+        value:"Here we come 1112"
+      },{
+        obsDatetime:"2015-07-15",
+        concept:"a8a06fc6-1350-11df-a1f1-0026b9348838",
+        value:"Here 0000",
+        comment:"Trialoage ower"
+      }]
+    }];
     var encData={
       encounterType:"8d5b2be0-c2cc-11de-8d13-0010c6dffd0f",
       patient:"5b6e348c-1359-11df-a1f1-0026b9348838",
@@ -49,17 +88,16 @@ search.factory('FormEntryService',['$http','$resource','AuthService','AUTH_EVENT
    return encData;
   }
 
-return formEntryService;
-}])
-
+  return formEntryService;
+}]);
 function createFormlyField(fieldDef){
- // alert(JSON.stringify(fieldDef.model));
   var f={};
   var fieldType=fieldDef['type'];
   if(fieldType==='select'||fieldType==='radio'||fieldType==='multiCheckbox'){
     f= {
       key:fieldDef.conceptId,
       type: fieldDef.type,
+      model: fieldDef.model,
       templateOptions: {
         label: fieldDef.label,
         options:getFieldOptions(fieldDef)
@@ -68,33 +106,66 @@ function createFormlyField(fieldDef){
 
   }
   else{
-      if(fieldType==='datepicker'){
-
-       f= {
-          key: fieldDef.conceptId,
-          type: fieldDef.type,
-          templateOptions: {
-          label: fieldDef.label,
-            type: "text",
-            datepickerPopup: "yyyy-MM-dd"
-        }
-        };
+    f= {
+      key:fieldDef.conceptId,
+      type: fieldDef.type,
+      model: fieldDef.model,
+      templateOptions: {
+        label: fieldDef.label
       }
-      else{
-
-        f= {
-          key:fieldDef.conceptId,
-          type: fieldDef.type,
-          templateOptions: {
-            label: fieldDef.label
-          }
-        };
-      }
-
+    };
   }
 
   return f;
 }
+
+function createFormlyFieldVs (fieldDef) {
+
+    var f={};
+    var fieldType=fieldDef['type'];
+    if(fieldType==='select'||fieldType==='radio'||fieldType==='multiCheckbox'){
+      f= {
+        key:fieldDef.conceptId,
+        type: fieldDef.type,
+        model:{conceptUuid:fieldDef.conceptId, fieldtype:fieldDef.type},
+        templateOptions: {
+          label: fieldDef.label,
+          options:getFieldOptions(fieldDef)
+        }
+      };
+
+    }
+    else{
+        if(fieldType==='datepicker'){
+
+         f= {
+            key: fieldDef.conceptId,
+            type: fieldDef.type,
+            templateOptions: {
+            label: fieldDef.label,
+            model:{conceptUuid:fieldDef.conceptId, fieldtype:fieldDef.type},
+              type: "text",
+              datepickerPopup: "yyyy-MM-dd"
+          }
+          };
+        }
+        else{
+
+          f= {
+            key:fieldDef.conceptId,
+            type: fieldDef.type,
+            model:{conceptUuid:fieldDef.conceptId, fieldtype:fieldDef.type},
+            templateOptions: {
+              label: fieldDef.label
+            }
+          };
+        }
+
+    }
+
+    return f;
+  }
+
 
 function getFieldOptions(fieldDef){
 
@@ -195,7 +266,7 @@ function getFormFieldList(){
       }];
 
   var adultReturnForm=
-    [{
+    [/*{
       conceptId:6266,
       id:'nhif',
       label:'9. Patient covered by NHIF',
@@ -227,13 +298,26 @@ function getFormFieldList(){
       optionLabels:"None,Cough  2 weeks,New exposure to household contact with TB,Fever for 2 weeks,Noticeable Weight loss,Chest pain,Breathlessness,Night sweats = 2 weeks,Swelling of Neck,Armpit,Abdomen,Joints,Groin",
       type:'multiCheckbox',
       validators:false
-    },
-      {
-      conceptId:7029,
-      id:'scheduledDate',
-      label:'If unscheduled, actual scheduled date',
-      type:'datepicker',
-      validators:false
+    }*/
+
+        {
+        conceptId:7029,
+        id:'scheduledDate',
+        label:'If unscheduled, actual scheduled date',
+        type:'datepicker',
+        validators:false
+      },{
+      groupId:7016,
+      groupMembers:[
+        {conceptId:7029,id:'scheduledAppDate',
+         label:'AppointMent scheduled date',
+         type:'datepicker',
+        validators:false},
+        {conceptId:1915,
+          id:'scheduledPlace',
+         label:'Place scheduled to',
+         type:'input',
+        validators:false}]
     }];
 
   return adultReturnForm;
@@ -241,7 +325,6 @@ function getFormFieldList(){
 
 function getConceptMapping(){
   var conceptMap=[
-    {concept:5088,uuid:'a8a65fee-1350-11df-a1f1-0026b9348838'},
     {concept:136,uuid:'a892e4b4-1350-11df-a1f1-0026b9348838'},
     {concept:832,uuid:'a89807f0-1350-11df-a1f1-0026b9348838'},
     {concept:1054,uuid:'a899a9f2-1350-11df-a1f1-0026b9348838'},
@@ -259,6 +342,7 @@ function getConceptMapping(){
     {concept:1838,uuid:'a89ff8de-1350-11df-a1f1-0026b9348838'},
     {concept:1839,uuid:'a89ff9a6-1350-11df-a1f1-0026b9348838'},
     {concept:1915,uuid:'a8a06fc6-1350-11df-a1f1-0026b9348838'},
+    {concept:5088,uuid:'a8a65fee-1350-11df-a1f1-0026b9348838'},
     {concept:5312,uuid:'a8a774b0-1350-11df-a1f1-0026b9348838'},
     {concept:5555,uuid:'a8aa76b0-1350-11df-a1f1-0026b9348838'},
     {concept:5960,uuid:'a8ad1276-1350-11df-a1f1-0026b9348838'},
@@ -269,6 +353,7 @@ function getConceptMapping(){
     {concept:6266,uuid:'a8b02524-1350-11df-a1f1-0026b9348838'},
     {concept:6290,uuid:'a8b03712-1350-11df-a1f1-0026b9348838'},
     {concept:6815,uuid:'8b715fed-97f6-4e38-8f6a-c167a42f8923'},
+    {concept:7016,uuid:'0f8b7f4e-1656-46b7-bc93-d1fe4f193f5d'},
     {concept:7029,uuid:'dc1942b2-5e50-4adc-949d-ad6c905f054e'},
     {concept:8059,uuid:'4639388c-ee31-4dcf-abb4-ad71253493bb'},
     {concept:8060,uuid:'5c5e5e89-8e4d-451d-9471-fbe359d40b00'},
